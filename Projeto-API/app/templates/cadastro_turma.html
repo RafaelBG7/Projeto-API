@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Cadastro de Turma</title>
+</head>
+<body>
+    <h1>Cadastro de Turma</h1>
+    <form id="turma-form">
+        <label for="descricao">Descrição:</label>
+        <input type="text" id="descricao" name="descricao" required>
+        
+        <label for="professor_id">Professor:</label>
+        <select id="professor_id" name="professor_id" required>
+            <option value="" disabled selected>Selecione um professor</option> <!-- Opção padrão -->
+            <!-- Professores serão carregados dinamicamente -->
+        </select>
+        
+        <button type="submit">Cadastrar Turma</button>
+    </form>
+
+    <h2>Lista de Turmas</h2>
+    <table id="turmas-table" border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Descrição</th>
+                <th>Ativo</th>
+                <th>Professor</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        async function loadProfessores() {
+            const response = await fetch('/professores');
+            const professores = await response.json();
+            const professorSelect = document.getElementById('professor_id');
+
+            professores.forEach(professor => {
+                const option = document.createElement('option');
+                option.value = professor.id;
+                option.textContent = professor.nome;
+                professorSelect.appendChild(option);
+            });
+        }
+
+        async function loadTurmas() {
+            const response = await fetch('/turmas');
+            const turmas = await response.json();
+            const turmasTable = document.getElementById('turmas-table').querySelector('tbody');
+            turmasTable.innerHTML = '';
+
+            turmas.forEach(turma => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${turma.id}</td>
+                    <td>${turma.descricao}</td>
+                    <td>${turma.ativo}</td>
+                    <td>${turma.professor.nome}</td> <!-- Exibindo o nome do professor corretamente -->
+                    <td><button onclick="excluirTurma(${turma.id})">Excluir</button></td>
+                `;
+                turmasTable.appendChild(row);
+            });
+        }
+
+        document.getElementById('turma-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const data = {
+                descricao: document.getElementById('descricao').value,
+                professor_id: document.getElementById('professor_id').value
+            };
+
+            fetch('/turmas', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                loadTurmas(); // Atualiza a lista após cadastro
+            })
+            .catch(error => console.error('Erro:', error));
+        });
+
+        function excluirTurma(id) {
+            if (confirm('Tem certeza que deseja excluir esta turma?')) {
+                fetch(`/turmas/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message || 'Erro ao excluir turma');
+                    loadTurmas(); // Atualiza a lista após exclusão
+                })
+                .catch(error => console.error('Erro ao excluir turma:', error));
+            }
+        }
+
+        window.onload = function() {
+            loadProfessores();
+            loadTurmas(); // Carrega a lista de turmas ao iniciar
+        };
+    </script>
+</body>
+</html>

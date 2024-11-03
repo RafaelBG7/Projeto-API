@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro e Listagem de Alunos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Cadastro de Aluno</h1>
+    <form id="aluno-form">
+        <label for="nome">Nome:</label>
+        <input type="text" id="nome" name="nome" required>
+
+        <label for="idade">Idade:</label>
+        <input type="number" id="idade" name="idade" required>
+
+        <label for="data_nascimento">Data de Nascimento:</label>
+        <input type="date" id="data_nascimento" name="data_nascimento" required>
+
+        <label for="nota_primeiro_semestre">Nota Primeiro Semestre:</label>
+        <input type="number" step="0.1" id="nota_primeiro_semestre" name="nota_primeiro_semestre" required>
+
+        <label for="nota_segundo_semestre">Nota Segundo Semestre:</label>
+        <input type="number" step="0.1" id="nota_segundo_semestre" name="nota_segundo_semestre" required>
+
+        <label for="media_final">Média Final:</label>
+        <input type="number" step="0.1" id="media_final" name="media_final" required disabled> 
+
+        <label for="turma_id">Turma:</label>
+        <select id="turma_id" name="turma_id" required></select>
+
+        <button type="submit">Cadastrar Aluno</button>
+    </form>
+
+    <div id="message"></div>
+
+    <h2>Lista de Alunos</h2>
+    <table id="alunos-table" border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Idade</th>
+                <th>Data de Nascimento</th>
+                <th>Nota 1º Semestre</th>
+                <th>Nota 2º Semestre</th>
+                <th>Média Final</th>
+                <th>Turma</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        function carregarTurmas() {
+            fetch('/turmas')
+                .then(response => response.json())
+                .then(data => {
+                    const turmaSelect = document.getElementById('turma_id');
+                    data.forEach(turma => {
+                        const option = document.createElement('option');
+                        option.value = turma.id;
+                        option.textContent = turma.descricao;
+                        turmaSelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Erro ao carregar turmas:', error));
+        }
+
+        function carregarAlunos() {
+            fetch('/alunos')
+                .then(response => response.json())
+                .then(data => {
+                    const alunosTable = document.getElementById('alunos-table').querySelector('tbody');
+                    alunosTable.innerHTML = '';
+                    data.forEach(aluno => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${aluno.id}</td>
+                            <td>${aluno.nome}</td>
+                            <td>${aluno.idade}</td>
+                            <td>${aluno.data_nascimento}</td>
+                            <td>${aluno.nota_primeiro_semestre}</td>
+                            <td>${aluno.nota_segundo_semestre}</td>
+                            <td>${aluno.media_final}</td>
+                            <td>${aluno.turma_id}</td>
+                            <td><button onclick="excluirAluno(${aluno.id})">Excluir</button></td>
+                        `;
+                        alunosTable.appendChild(row);
+                    });
+                })
+                .catch(error => console.error('Erro ao carregar alunos:', error));
+        }
+
+        function calcularMediaFinal() {
+            const notaPrimeiroSemestre = parseFloat(document.getElementById('nota_primeiro_semestre').value) || 0;
+            const notaSegundoSemestre = parseFloat(document.getElementById('nota_segundo_semestre').value) || 0;
+
+            const mediaFinal = (notaPrimeiroSemestre + notaSegundoSemestre) / 2;
+            document.getElementById('media_final').value = mediaFinal.toFixed(1);
+        }
+
+        function excluirAluno(id) {
+            if (confirm('Tem certeza que deseja excluir este aluno?')) {
+                fetch(`/alunos/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const messageDiv = document.getElementById('message');
+                    if (data.message) {
+                        messageDiv.textContent = data.message;
+                        messageDiv.style.color = "green";
+                        carregarAlunos(); // Atualiza a lista após exclusão
+                    } else {
+                        messageDiv.textContent = 'Erro: ' + (data.error || 'Desconhecido');
+                        messageDiv.style.color = "red";
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    const messageDiv = document.getElementById('message');
+                    messageDiv.textContent = 'Erro ao excluir aluno';
+                    messageDiv.style.color = "red";
+                });
+            }
+        }
+
+        document.getElementById('aluno-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const data = {
+                nome: document.getElementById('nome').value,
+                idade: document.getElementById('idade').value,
+                data_nascimento: document.getElementById('data_nascimento').value,
+                nota_primeiro_semestre: document.getElementById('nota_primeiro_semestre').value,
+                nota_segundo_semestre: document.getElementById('nota_segundo_semestre').value,
+                media_final: document.getElementById('media_final').value,
+                turma_id: document.getElementById('turma_id').value
+            };
+
+            fetch('/alunos', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                const messageDiv = document.getElementById('message');
+                if (data.message) {
+                    messageDiv.textContent = data.message;
+                    messageDiv.style.color = "green";
+                    carregarAlunos(); // Atualiza a lista após cadastro
+                } else {
+                    messageDiv.textContent = 'Erro: ' + (data.error || 'Desconhecido');
+                    messageDiv.style.color = "red";
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                const messageDiv = document.getElementById('message');
+                messageDiv.textContent = 'Erro ao cadastrar aluno';
+                messageDiv.style.color = "red";
+            });
+        });
+
+        document.getElementById('nota_primeiro_semestre').addEventListener('input', calcularMediaFinal);
+        document.getElementById('nota_segundo_semestre').addEventListener('input', calcularMediaFinal);
+
+        window.onload = function() {
+            carregarTurmas();
+            carregarAlunos();
+        };
+    </script>
+</body>
+</html>
