@@ -1,4 +1,4 @@
-/* Reset básico */
+
 * {
     margin: 0;
     padding: 0;
@@ -12,14 +12,14 @@ body {
     line-height: 1.6;
 }
 
-/* Container */
+
 .container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
 }
 
-/* Estilo do cabeçalho */
+
 header {
     background-color: #007aff;
     color: white;
@@ -51,7 +51,7 @@ nav a:hover {
     background: rgba(255, 255, 255, 0.3);
 }
 
-/* Estilo das seções */
+
 section {
     margin: 40px 0;
     padding: 25px;
@@ -73,13 +73,13 @@ h2 {
     padding-left: 10px;
 }
 
-/* Parágrafos */
+
 p {
     margin-bottom: 15px;
     color: #555;
 }
 
-/* Formulário */
+
 form label {
     display: block;
     font-weight: bold;
@@ -102,7 +102,7 @@ form input:focus, form select:focus {
     outline: none;
 }
 
-/* Botões */
+
 button {
     background-color: #007aff;
     color: white;
@@ -122,7 +122,7 @@ button:hover {
     box-shadow: 0 6px 16px rgba(0, 91, 181, 0.4);
 }
 
-/* Rodapé */
+
 footer {
     text-align: center;
     margin-top: 40px;
@@ -133,7 +133,7 @@ footer {
     font-size: 0.9em;
 }
 
-/* Estilos da tabela */
+
 table {
     width: 100%;
     border-collapse: collapse;
@@ -166,7 +166,7 @@ tr:hover {
     transition: background 0.3s;
 }
 
-/* Responsividade */
+
 @media (max-width: 768px) {
     h1 {
         font-size: 2em;
